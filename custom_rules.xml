@@ -8,5 +8,6 @@
           unless="runner.dir"
   />
 
-  <import file="${runner.dir}/build.xml" />
+  <import file="${runner.dir}/runner.xml" />
+  <import file="${runner.dir}/test.xml" />
 </project>
