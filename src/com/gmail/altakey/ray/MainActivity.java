@@ -17,6 +17,11 @@ import android.widget.Toast;
 import android.media.MediaPlayer;
 import android.media.AudioManager;
 import android.content.res.AssetFileDescriptor;
+import android.content.Intent;
+import android.content.Context;
+import android.content.ServiceConnection;
+import android.os.IBinder;
+import android.content.ComponentName;
 
 public class MainActivity extends Activity
 {
@@ -34,7 +39,8 @@ public class MainActivity extends Activity
                 try {
                     load();
                     Toast.makeText(MainActivity.this, "copied corpse", Toast.LENGTH_SHORT).show();
-                    play();
+                    Intent intent = new Intent(MainActivity.this, PlaybackService.class);
+                    startService(intent);
                     Toast.makeText(MainActivity.this, "playing corpse", Toast.LENGTH_SHORT).show();
                 } catch (IOException e) {
                     Log.d("MA", String.format("IOException: %s", e.getMessage()));
