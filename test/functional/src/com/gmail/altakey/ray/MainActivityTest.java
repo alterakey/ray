@@ -39,4 +39,11 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         assertTrue(mSolo.searchText("Preferences"));
         assertTrue(mSolo.searchText("Quit"));
     }
+
+    public void test_002() {
+        mSolo.sendKey(KeyEvent.KEYCODE_MENU);
+        mSolo.clickOnText("Preferences");
+        assertTrue(mSolo.searchText("Air Intention"));
+        assertTrue(mSolo.searchText("0.0.1"));
+    }
 }

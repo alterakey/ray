@@ -65,6 +65,10 @@ public class MainActivity extends Activity
     @Override
     public boolean onOptionsItemSelected(MenuItem mi) {
         switch (mi.getItemId()) {
+        case R.id.menu_main_config:
+            Intent intent = new Intent(this, ConfigActivity.class);
+            startActivity(intent);
+            return true;
         case R.id.menu_main_quit:
             stopPlaybackService();
             finish();

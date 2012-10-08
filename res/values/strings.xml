@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Air Intention</string>
+    <string name="app_version">0.0.1</string>
+    <string name="config_title_version">Air Intention</string>
     <string name="menu_title_main_preferences">Preferences</string>
     <string name="menu_title_main_quit">Quit</string>
     <string name="accepting_stream">Accepting stream</string>
