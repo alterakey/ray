@@ -1,0 +1,3 @@
+[submodule "etc/runner"]
+	path = etc/runner
+	url = git://github.com/taky/android-runner
