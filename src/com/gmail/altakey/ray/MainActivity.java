@@ -21,6 +21,7 @@ import java.net.URI;
 import android.widget.ListView;
 import android.widget.ListAdapter;
 import android.widget.ArrayAdapter;
+import android.view.Menu;
 
 public class MainActivity extends Activity
 {
@@ -47,6 +48,12 @@ public class MainActivity extends Activity
     private void loadCurrentPlaylist() {
         ListView lv = (ListView)findViewById(R.id.view);
         lv.setAdapter(mAdapter);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu m) {
+        getMenuInflater().inflate(R.menu.main, m);
+        return true;
     }
 
     private class MockAdapter extends ArrayAdapter<String> {

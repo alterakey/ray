@@ -5,6 +5,7 @@ import com.jayway.android.robotium.solo.Solo;
 
 import android.content.Context;
 import android.app.ActivityManager;
+import android.view.KeyEvent;
 
 public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActivity> {
 
@@ -31,5 +32,11 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
 
     public void test_000() {
         assertServiceIsRunning(PlaybackService.class.getName());
+    }
+
+    public void test_001() {
+        mSolo.sendKey(KeyEvent.KEYCODE_MENU);
+        assertTrue(mSolo.searchText("Preferences"));
+        assertTrue(mSolo.searchText("Quit"));
     }
 }
