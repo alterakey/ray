@@ -18,9 +18,14 @@ import android.content.res.AssetFileDescriptor;
 import android.content.Intent;
 import android.net.Uri;
 import java.net.URI;
+import android.widget.ListView;
+import android.widget.ListAdapter;
+import android.widget.ArrayAdapter;
 
 public class MainActivity extends Activity
 {
+    private ListAdapter mAdapter;
+
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState)
@@ -28,48 +33,27 @@ public class MainActivity extends Activity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
 
-        Button button = (Button)findViewById(R.id.play);
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                try {
-                    load();
-                    Toast.makeText(MainActivity.this, "copied corpse", Toast.LENGTH_SHORT).show();
-                    Intent intent = new Intent(MainActivity.this, PlaybackService.class);
-                    intent.setAction(PlaybackService.ACTION_ENQUEUE);
-                    intent.setData(getCorpseUri());
-                    startService(intent);
-                    Toast.makeText(MainActivity.this, "playing corpse", Toast.LENGTH_SHORT).show();
-                } catch (IOException e) {
-                    Log.d("MA", String.format("IOException: %s", e.getMessage()));
-                }
-            }
+        mAdapter = new MockAdapter();
 
-            private File getCorpseFile() throws IOException {
-                File root = getExternalFilesDir(null);
-                if (root == null) {
-                    throw new IOException("cannot open external storage root");
-                }
-                return new File(root, "corpse.m4a");
-            }
+        loadCurrentPlaylist();
+        startPlaybackService();
+    }
 
-            private Uri getCorpseUri() throws IOException {
-                File corpse = getCorpseFile();
-                return Uri.parse(String.format("file://%s", corpse.getAbsolutePath()));
-            }
+    private void startPlaybackService() {
+        Intent intent = new Intent(MainActivity.this, PlaybackService.class);
+        startService(intent);
+    }
 
-            private void load() throws IOException {
-                // copy stream
-                AssetFileDescriptor fd = getAssets().openFd("corpse.m4a");
-                FileChannel src = fd.createInputStream().getChannel();
-                FileChannel dest = new FileOutputStream(getCorpseFile()).getChannel();
+    private void loadCurrentPlaylist() {
+        ListView lv = (ListView)findViewById(R.id.view);
+        lv.setAdapter(mAdapter);
+    }
 
-                dest.transferFrom(src, 0, fd.getLength());
-
-                src.close();
-                dest.close();
-                fd.close();
-            }
-        });
+    private class MockAdapter extends ArrayAdapter<String> {
+        public MockAdapter() {
+            super(MainActivity.this, android.R.layout.simple_list_item_1, new String[] {
+                    "file 1", "file 2", "file 3"
+                });
+        }
     }
 }

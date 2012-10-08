@@ -3,6 +3,9 @@ package com.gmail.altakey.ray;
 import android.test.ActivityInstrumentationTestCase2;
 import com.jayway.android.robotium.solo.Solo;
 
+import android.content.Context;
+import android.app.ActivityManager;
+
 public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActivity> {
 
     private Solo mSolo;
@@ -15,9 +18,18 @@ public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActiv
         mSolo = new Solo(getInstrumentation(), getActivity());
     }
 
+    private void assertServiceIsRunning(String className) {
+        boolean ret = false;
+        ActivityManager manager = (ActivityManager)getActivity().getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (className.equals(service.service.getClassName())) {
+                ret = true;
+            }
+        }
+        assertTrue(ret);
+    }
+
     public void test_000() {
-        mSolo.clickOnButton("Play");
-        assertTrue(mSolo.searchText("copied corpse"));
-        assertTrue(mSolo.searchText("playing corpse"));
+        assertServiceIsRunning(PlaybackService.class.getName());
     }
 }
