@@ -1,21 +1,23 @@
 package com.gmail.altakey.ray;
 
 import android.test.ActivityInstrumentationTestCase2;
+import com.jayway.android.robotium.solo.Solo;
 
-/**
- * This is a simple framework for a test of an Application.  See
- * {@link android.test.ApplicationTestCase ApplicationTestCase} for more information on
- * how to write and extend Application tests.
- * <p/>
- * To run this test, you can type:
- * adb shell am instrument -w \
- * -e class com.gmail.altakey.ray.MainActivityTest \
- * com.gmail.altakey.ray.tests/android.test.InstrumentationTestRunner
- */
 public class MainActivityTest extends ActivityInstrumentationTestCase2<MainActivity> {
+
+    private Solo mSolo;
 
     public MainActivityTest() {
         super("com.gmail.altakey.ray", MainActivity.class);
     }
 
+    public void setUp() {
+        mSolo = new Solo(getInstrumentation(), getActivity());
+    }
+
+    public void test_000() {
+        mSolo.clickOnButton("Play");
+        assertTrue(mSolo.searchText("copied corpse"));
+        assertTrue(mSolo.searchText("playing corpse"));
+    }
 }
