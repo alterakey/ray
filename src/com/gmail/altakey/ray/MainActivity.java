@@ -22,6 +22,7 @@ import android.widget.ListView;
 import android.widget.ListAdapter;
 import android.widget.ArrayAdapter;
 import android.view.Menu;
+import android.view.MenuItem;
 
 public class MainActivity extends Activity
 {
@@ -45,6 +46,11 @@ public class MainActivity extends Activity
         startService(intent);
     }
 
+    private void stopPlaybackService() {
+        Intent intent = new Intent(MainActivity.this, PlaybackService.class);
+        stopService(intent);
+    }
+
     private void loadCurrentPlaylist() {
         ListView lv = (ListView)findViewById(R.id.view);
         lv.setAdapter(mAdapter);
@@ -54,6 +60,17 @@ public class MainActivity extends Activity
     public boolean onCreateOptionsMenu(Menu m) {
         getMenuInflater().inflate(R.menu.main, m);
         return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem mi) {
+        switch (mi.getItemId()) {
+        case R.id.menu_main_quit:
+            stopPlaybackService();
+            finish();
+            return true;
+        }
+        return super.onOptionsItemSelected(mi);
     }
 
     private class MockAdapter extends ArrayAdapter<String> {
