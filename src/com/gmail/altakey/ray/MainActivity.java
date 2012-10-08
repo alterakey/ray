@@ -14,14 +14,10 @@ import java.io.FileOutputStream;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import android.widget.Toast;
-import android.media.MediaPlayer;
-import android.media.AudioManager;
 import android.content.res.AssetFileDescriptor;
 import android.content.Intent;
-import android.content.Context;
-import android.content.ServiceConnection;
-import android.os.IBinder;
-import android.content.ComponentName;
+import android.net.Uri;
+import java.net.URI;
 
 public class MainActivity extends Activity
 {
@@ -40,6 +36,8 @@ public class MainActivity extends Activity
                     load();
                     Toast.makeText(MainActivity.this, "copied corpse", Toast.LENGTH_SHORT).show();
                     Intent intent = new Intent(MainActivity.this, PlaybackService.class);
+                    intent.setAction(PlaybackService.ACTION_ENQUEUE);
+                    intent.setData(getCorpseUri());
                     startService(intent);
                     Toast.makeText(MainActivity.this, "playing corpse", Toast.LENGTH_SHORT).show();
                 } catch (IOException e) {
@@ -55,6 +53,11 @@ public class MainActivity extends Activity
                 return new File(root, "corpse.m4a");
             }
 
+            private Uri getCorpseUri() throws IOException {
+                File corpse = getCorpseFile();
+                return Uri.parse(String.format("file://%s", corpse.getAbsolutePath()));
+            }
+
             private void load() throws IOException {
                 // copy stream
                 AssetFileDescriptor fd = getAssets().openFd("corpse.m4a");
@@ -66,14 +69,6 @@ public class MainActivity extends Activity
                 src.close();
                 dest.close();
                 fd.close();
-            }
-
-            private void play() throws IOException {
-                MediaPlayer player = new MediaPlayer();
-                player.setAudioStreamType(AudioManager.STREAM_MUSIC);
-                player.setDataSource(getCorpseFile().getAbsolutePath());
-                player.prepare();
-                player.start();
             }
         });
     }

@@ -13,6 +13,8 @@ import android.support.v4.app.NotificationCompat;
 
 import java.io.IOException;
 import java.io.File;
+import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class PlaybackService extends Service {
     public static final String ACTION_ENQUEUE = "com.gmail.altakey.ray.PlaybackService.actions.ENQUEUE";
@@ -27,7 +29,12 @@ public class PlaybackService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (ACTION_ENQUEUE.equals(intent.getAction())) {
-            enqueue(intent.getData());
+            try {
+                mPlayer.enqueue(intent.getData());
+            } catch (IOException e) {
+                Log.d("PS", String.format("cannot start player: %s", e.toString()));
+                stopSelf();
+            }
         }
         return START_STICKY;
     }
@@ -58,22 +65,26 @@ public class PlaybackService extends Service {
         stopForeground(true);
     }
 
-    private void enqueue(Uri uri) {
-        Log.d("PS", String.format("would enqueue: %s", uri.toString()));
-    }
-
     private class Player {
         private MediaPlayer mmPlayer;
+        private boolean mmPlaying = false;
+        private Queue<Uri> mmQueue = new ConcurrentLinkedQueue<Uri>();
+        private MediaPlayerEventListener mmListener = new MediaPlayerEventListener();
 
         public void start() throws IOException {
             if (mmPlayer == null) {
                 mmPlayer = new MediaPlayer();
+                mmPlayer.setOnCompletionListener(mmListener);
+            } else {
+                mmPlayer.reset();
+            }
+            if (!mmQueue.isEmpty()) {
+                Uri uri = mmQueue.peek();
                 mmPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-                mmPlayer.setDataSource(getCorpseFile().getAbsolutePath());
+                mmPlayer.setDataSource(PlaybackService.this, uri);
                 mmPlayer.prepare();
                 mmPlayer.start();
-            } else {
-                mmPlayer.start();
+                mmPlaying = true;
             }
         }
 
@@ -81,15 +92,31 @@ public class PlaybackService extends Service {
             if (mmPlayer != null) {
                 mmPlayer.release();
                 mmPlayer = null;
+                mmPlaying = false;
             }
         }
 
-        private File getCorpseFile() throws IOException {
-            File root = Environment.getExternalStorageDirectory();
-            if (root == null) {
-                throw new IOException("cannot open external storage root");
+        public void enqueue(Uri uri) throws IOException {
+            mmQueue.add(uri);
+            Log.d("PS", String.format("queued: %s", uri.toString()));
+            if (!mmPlaying)
+                start();
+        }
+
+        public void skip() throws IOException {
+            mmQueue.poll();
+            start();
+        }
+
+        private class MediaPlayerEventListener implements MediaPlayer.OnCompletionListener {
+            @Override
+            public void onCompletion(MediaPlayer mp) {
+                try {
+                    skip();
+                } catch (IOException e) {
+                    onCompletion(mp);
+                }
             }
-            return new File(root, "corpse.m4a");
         }
     }
 }
