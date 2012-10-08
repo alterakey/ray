@@ -46,7 +46,7 @@ public class MainActivity extends Activity
             }
 
             private File getCorpseFile() throws IOException {
-                File root = Environment.getExternalStorageDirectory();
+                File root = getExternalFilesDir(null);
                 if (root == null) {
                     throw new IOException("cannot open external storage root");
                 }
