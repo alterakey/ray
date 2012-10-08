@@ -10,6 +10,7 @@ import android.os.Environment;
 import android.util.Log;
 import android.app.Notification;
 import android.support.v4.app.NotificationCompat;
+import android.app.PendingIntent;
 
 import java.io.IOException;
 import java.io.File;
@@ -51,9 +52,14 @@ public class PlaybackService extends Service {
             return;
         }
 
+        Intent content = new Intent(this, MainActivity.class);
+        content.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+
         Notification noti = new NotificationCompat.Builder(this)
             .setContentTitle(getString(R.string.app_name))
             .setContentText(getString(R.string.accepting_stream))
+            .setContentIntent(PendingIntent.getActivity(this, 0, content, PendingIntent.FLAG_UPDATE_CURRENT))
+            .setTicker(getString(R.string.accepting_stream))
             .setSmallIcon(R.drawable.icon)
             .getNotification();
         startForeground(1, noti);
