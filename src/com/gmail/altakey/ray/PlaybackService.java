@@ -8,6 +8,8 @@ import android.media.MediaPlayer;
 import android.media.AudioManager;
 import android.os.Environment;
 import android.util.Log;
+import android.app.Notification;
+import android.support.v4.app.NotificationCompat;
 
 import java.io.IOException;
 import java.io.File;
@@ -27,13 +29,33 @@ public class PlaybackService extends Service {
         if (ACTION_ENQUEUE.equals(intent.getAction())) {
             enqueue(intent.getData());
         }
+        return START_STICKY;
+    }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
 
         try {
             mPlayer.start();
         } catch (IOException e) {
             Log.d("PS", String.format("cannot start player: %s", e.toString()));
+            stopSelf();
+            return;
         }
-        return START_NOT_STICKY;
+
+        Notification noti = new NotificationCompat.Builder(this)
+            .setContentTitle(getString(R.string.app_name))
+            .setContentText(getString(R.string.accepting_stream))
+            .setSmallIcon(R.drawable.icon)
+            .getNotification();
+        startForeground(1, noti);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        stopForeground(true);
     }
 
     private void enqueue(Uri uri) {
