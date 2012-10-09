@@ -77,6 +77,7 @@ public class PlaybackService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        mPlayer.stop();
         stopForeground(true);
     }
 
