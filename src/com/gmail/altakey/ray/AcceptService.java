@@ -26,9 +26,12 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.*;
 import android.widget.Toast;
+import android.net.wifi.WifiManager;
+import android.content.Context;
+import android.os.PowerManager;
 
 public class AcceptService extends Service {
-    private ServerController mServer = new ServerController();
+    private ServerController mServer;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -43,6 +46,8 @@ public class AcceptService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+
+        mServer = new ServerController();
 
         Intent content = new Intent(this, MainActivity.class);
         content.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -74,17 +79,33 @@ public class AcceptService extends Service {
 
     private class ServerController {
         private HelloServer mmServer = null;
+        private WifiManager.WifiLock mmWifiLock = null;
+        private PowerManager.WakeLock mmWakeLock = null;
+
+        public ServerController() {
+            WifiManager wfm = (WifiManager)getSystemService(Context.WIFI_SERVICE);
+            PowerManager pwm = (PowerManager)getSystemService(Context.POWER_SERVICE);
+            mmWifiLock = wfm.createWifiLock(WifiManager.WIFI_MODE_FULL, "com.gmail.altakey.ray.AcceptService");
+            mmWakeLock = pwm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "com.gmail.altakey.ray.AcceptService");
+        }
 
         public void start() throws IOException {
+            mmWakeLock.acquire();
+            mmWifiLock.acquire();
             if (mmServer == null) {
                 mmServer = new HelloServer(8080, getExternalFilesDir(null));
             }
         }
 
         public void stop() {
-            if (mmServer != null) {
-                mmServer.stop();
-                mmServer = null;
+            try {
+                if (mmServer != null) {
+                    mmServer.stop();
+                    mmServer = null;
+                }
+            } finally {
+                mmWifiLock.release();
+                mmWakeLock.release();
             }
         }
     }
