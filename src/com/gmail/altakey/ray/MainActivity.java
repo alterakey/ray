@@ -26,17 +26,20 @@ public class MainActivity extends Activity
         setContentView(R.layout.main);
 
         mAdapter = new MockAdapter();
-
-        startPlaybackService();
         loadCurrentPlaylist();
+
+        startServices();
     }
 
-    private void startPlaybackService() {
+    private void startServices() {
         Intent intent = new Intent(MainActivity.this, PlaybackService.class);
+        startService(intent);
+
+        intent = new Intent(MainActivity.this, AcceptService.class);
         startService(intent);
     }
 
-    private void stopPlaybackService() {
+    private void stopServices() {
         Intent intent = new Intent(MainActivity.this, PlaybackService.class);
         stopService(intent);
     }
@@ -60,7 +63,7 @@ public class MainActivity extends Activity
             startActivity(intent);
             return true;
         case R.id.menu_main_quit:
-            stopPlaybackService();
+            stopServices();
             finish();
             return true;
         }

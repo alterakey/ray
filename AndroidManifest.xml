@@ -24,5 +24,6 @@
         </activity>
         <activity android:name="ConfigActivity" />
 	<service android:name=".PlaybackService" />
+	<service android:name=".AcceptService" />
     </application>
 </manifest>

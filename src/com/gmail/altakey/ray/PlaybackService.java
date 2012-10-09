@@ -66,9 +66,8 @@ public class PlaybackService extends Service {
 
         Notification noti = new NotificationCompat.Builder(this)
             .setContentTitle(getString(R.string.app_name))
-            .setContentText(getString(R.string.accepting_stream))
+            .setContentText("Playing...")
             .setContentIntent(PendingIntent.getActivity(this, 0, content, PendingIntent.FLAG_UPDATE_CURRENT))
-            .setTicker(getString(R.string.accepting_stream))
             .setSmallIcon(R.drawable.icon)
             .getNotification();
         startForeground(1, noti);
