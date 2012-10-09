@@ -5,14 +5,8 @@ import android.os.Bundle;
 import android.widget.Button;
 import android.view.View;
 
-import java.nio.*;
 import android.util.Log;
 import android.os.Environment;
-import java.io.File;
-import java.io.IOException;
-import java.io.FileOutputStream;
-import java.nio.channels.Channels;
-import java.nio.channels.FileChannel;
 import android.widget.Toast;
 import android.content.res.AssetFileDescriptor;
 import android.content.Intent;
@@ -23,6 +17,7 @@ import android.widget.ListAdapter;
 import android.widget.ArrayAdapter;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.os.Parcelable;
 
 public class MainActivity extends Activity
 {
@@ -37,8 +32,18 @@ public class MainActivity extends Activity
 
         mAdapter = new MockAdapter();
 
-        loadCurrentPlaylist();
+        Intent intent = getIntent();
+
         startPlaybackService();
+
+        if (Intent.ACTION_MAIN.equals(intent.getAction())) {
+            loadCurrentPlaylist();
+        } else if (Intent.ACTION_SEND.equals(intent.getAction())
+                   || Intent.ACTION_SEND_MULTIPLE.equals(intent.getAction())) {
+            new Enqueuer(intent).queue();
+            Toast.makeText(this, "Queued in playlist.", Toast.LENGTH_SHORT).show();
+            finish();
+        }
     }
 
     private void startPlaybackService() {
@@ -82,6 +87,38 @@ public class MainActivity extends Activity
             super(MainActivity.this, android.R.layout.simple_list_item_1, new String[] {
                     "file 1", "file 2", "file 3"
                 });
+        }
+    }
+
+    private class Enqueuer {
+        private Intent mmIntent;
+
+        public Enqueuer(Intent intent) {
+            mmIntent = intent;
+        }
+
+        public void queue() {
+            final String action = mmIntent.getAction();
+            final Bundle extras = mmIntent.getExtras();
+
+            if (Intent.ACTION_SEND.equals(action)) {
+                if (extras.containsKey(Intent.EXTRA_STREAM)) {
+                    enqueueToService((Uri)extras.getParcelable(Intent.EXTRA_STREAM));
+                }
+            } else if (Intent.ACTION_SEND_MULTIPLE.equals(action)) {
+                if (extras.containsKey(Intent.EXTRA_STREAM)) {
+                    for (Parcelable p : extras.getParcelableArrayList(Intent.EXTRA_STREAM)) {
+                        enqueueToService((Uri)p);
+                    }
+                }
+            }
+        }
+
+        private void enqueueToService(Uri uri) {
+            Intent intent = new Intent(MainActivity.this, PlaybackService.class);
+            intent.setAction(PlaybackService.ACTION_ENQUEUE);
+            intent.setData(uri);
+            startService(intent);
         }
     }
 }

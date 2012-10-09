@@ -17,6 +17,15 @@ import java.io.File;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import java.util.Random;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.io.FileOutputStream;
+import java.nio.channels.Channels;
+import java.nio.channels.FileChannel;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.*;
+
 public class PlaybackService extends Service {
     public static final String ACTION_ENQUEUE = "com.gmail.altakey.ray.PlaybackService.actions.ENQUEUE";
 
@@ -125,4 +134,75 @@ public class PlaybackService extends Service {
             }
         }
     }
+
+    private class Cacher {
+        private Uri mmUri;
+
+        public Cacher(Uri uri) {
+            mmUri = uri;
+        }
+
+        public File cache() throws IOException {
+            ReadableByteChannel src = null;
+            FileChannel dest = null;
+            File destFile = null;
+
+            try {
+                destFile = new File(root(), randomName());
+                src = Channels.newChannel(getContentResolver().openInputStream(mmUri));
+                dest = new FileOutputStream(destFile).getChannel();
+
+                ByteBuffer buffer = ByteBuffer.allocateDirect(16 * 1024);
+                while (src.read(buffer) != -1) {
+                    buffer.flip();
+                    dest.write(buffer);
+                    buffer.compact();
+                }
+                buffer.flip();
+                while (buffer.hasRemaining()) {
+                    dest.write(buffer);
+                }
+
+                Log.d("MA", String.format("cached %s as %s", mmUri.toString(), destFile.getName()));
+                return destFile;
+            } catch (IOException e) {
+                Log.e("MA", "cannot cache", e);
+                destFile.delete();
+                throw e;
+            } finally {
+                if (src != null) {
+                    try {
+                        src.close();
+                    } catch (IOException e) {
+                    }
+                }
+                if (dest != null) {
+                    try {
+                        dest.close();
+                    } catch (IOException e) {
+                    }
+                }
+            }
+        }
+
+        private String randomName() {
+            byte[] buffer = new byte[32];
+            new Random().nextBytes(buffer);
+
+            StringBuilder sb = new StringBuilder();
+            try {
+                for (byte b : MessageDigest.getInstance("MD5").digest(buffer)) {
+                    sb.append(Integer.toHexString(((int)b) & 0xff));
+                }
+                return sb.toString();
+            } catch (NoSuchAlgorithmException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        private File root() {
+            return getExternalFilesDir(null);
+        }
+    }
+
 }
