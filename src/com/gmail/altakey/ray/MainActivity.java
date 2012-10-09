@@ -42,6 +42,9 @@ public class MainActivity extends Activity
     private void stopServices() {
         Intent intent = new Intent(MainActivity.this, PlaybackService.class);
         stopService(intent);
+
+        intent = new Intent(MainActivity.this, AcceptService.class);
+        stopService(intent);
     }
 
     private void loadCurrentPlaylist() {
