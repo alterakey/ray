@@ -39,13 +39,15 @@ public class PlaybackService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (ACTION_ENQUEUE.equals(intent.getAction())) {
-            try {
-                mPlayer.enqueue(intent.getData());
-                Toast.makeText(this, "Queued in playlist.", Toast.LENGTH_SHORT).show();
-            } catch (IOException e) {
-                Log.d("PS", String.format("cannot start player: %s", e.toString()));
-                stopSelf();
+        if (intent != null) {
+            if (ACTION_ENQUEUE.equals(intent.getAction())) {
+                try {
+                    mPlayer.enqueue(intent.getData());
+                    Toast.makeText(this, "Queued in playlist.", Toast.LENGTH_SHORT).show();
+                } catch (IOException e) {
+                    Log.d("PS", String.format("cannot start player: %s", e.toString()));
+                    stopSelf();
+                }
             }
         }
         return START_STICKY;
