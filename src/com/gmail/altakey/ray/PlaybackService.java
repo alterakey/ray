@@ -11,6 +11,7 @@ import android.util.Log;
 import android.app.Notification;
 import android.support.v4.app.NotificationCompat;
 import android.app.PendingIntent;
+import android.widget.Toast;
 
 import java.io.IOException;
 import java.io.File;
@@ -41,6 +42,7 @@ public class PlaybackService extends Service {
         if (ACTION_ENQUEUE.equals(intent.getAction())) {
             try {
                 mPlayer.enqueue(intent.getData());
+                Toast.makeText(this, "Queued in playlist.", Toast.LENGTH_SHORT).show();
             } catch (IOException e) {
                 Log.d("PS", String.format("cannot start player: %s", e.toString()));
                 stopSelf();
@@ -87,6 +89,7 @@ public class PlaybackService extends Service {
         private MediaPlayerEventListener mmListener = new MediaPlayerEventListener();
 
         public void start() throws IOException {
+            mmPlaying = false;
             if (mmPlayer == null) {
                 mmPlayer = new MediaPlayer();
                 mmPlayer.setOnCompletionListener(mmListener);

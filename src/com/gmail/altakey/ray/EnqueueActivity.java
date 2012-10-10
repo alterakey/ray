@@ -26,8 +26,6 @@ public class EnqueueActivity extends Activity {
                 }
             }
         }
-
-        Toast.makeText(this, "Queued in playlist.", Toast.LENGTH_SHORT).show();
         finish();
     }
 

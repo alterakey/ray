@@ -93,7 +93,7 @@ public class AcceptService extends Service {
             mmWakeLock.acquire();
             mmWifiLock.acquire();
             if (mmServer == null) {
-                mmServer = new HelloServer(8080, getExternalFilesDir(null));
+                mmServer = new HelloServer(AcceptService.this, 8080, getExternalFilesDir(null));
             }
         }
 
