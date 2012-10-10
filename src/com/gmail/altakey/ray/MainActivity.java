@@ -32,10 +32,7 @@ public class MainActivity extends Activity
     }
 
     private void startServices() {
-        Intent intent = new Intent(MainActivity.this, PlaybackService.class);
-        startService(intent);
-
-        intent = new Intent(MainActivity.this, AcceptService.class);
+        Intent intent = new Intent(MainActivity.this, AcceptService.class);
         startService(intent);
     }
 
