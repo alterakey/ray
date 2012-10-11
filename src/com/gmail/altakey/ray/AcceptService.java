@@ -85,7 +85,11 @@ public class AcceptService extends Service {
         public ServerController() {
             WifiManager wfm = (WifiManager)getSystemService(Context.WIFI_SERVICE);
             PowerManager pwm = (PowerManager)getSystemService(Context.POWER_SERVICE);
-            mmWifiLock = wfm.createWifiLock(WifiManager.WIFI_MODE_FULL, "com.gmail.altakey.ray.AcceptService");
+            try {
+                mmWifiLock = wfm.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "com.gmail.altakey.ray.AcceptService");
+            } catch (NoSuchFieldError e) {
+                mmWifiLock = wfm.createWifiLock(WifiManager.WIFI_MODE_FULL, "com.gmail.altakey.ray.AcceptService");
+            }
             mmWakeLock = pwm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "com.gmail.altakey.ray.AcceptService");
         }
 
