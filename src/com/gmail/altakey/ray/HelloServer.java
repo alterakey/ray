@@ -1,6 +1,7 @@
 package com.gmail.altakey.ray;
 
 import java.io.*;
+import java.nio.channels.FileChannel;
 import java.util.*;
 
 import android.content.Context;
@@ -32,7 +33,7 @@ public class HelloServer extends NanoHTTPD
 				"</form>\n";
         } else {
 			msg += "<p>Queued in playlist.</p>";
-            new Enqueuer().enqueue(files.getProperty("stream"));
+            new Enqueuer(files.getProperty("stream")).enqueue();
         }
 
 		msg += "</body></html>\n";
@@ -40,11 +41,50 @@ public class HelloServer extends NanoHTTPD
 	}
 
     private class Enqueuer {
-        public void enqueue(String path) {
+        private String mmPath;
+
+        public Enqueuer(String path) {
+            mmPath = path;
+        }
+
+        public void enqueue() {
+            seize();
+
             Intent intent = new Intent(mContext, PlaybackService.class);
             intent.setAction(PlaybackService.ACTION_ENQUEUE);
-            intent.setData(Uri.parse(String.format("file://%s", path)));
+            intent.setData(Uri.parse(String.format("file://%s", mmPath)));
             mContext.startService(intent);
+        }
+
+        private void seize() {
+            FileChannel src = null;
+            FileChannel dest = null;
+
+            try {
+                File srcFile = new File(mmPath);
+                File destFile = new File(mContext.getExternalFilesDir(null), srcFile.getName());
+                src = new FileInputStream(srcFile).getChannel();
+                dest = new FileOutputStream(destFile).getChannel();
+
+                dest.transferFrom(src, 0, src.size());
+
+                mmPath = destFile.getAbsolutePath();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            } finally {
+                try {
+                    if (src != null) {
+                        src.close();
+                    }
+                } catch (IOException e) {
+                }
+                try {
+                    if (dest != null) {
+                        dest.close();
+                    }
+                } catch (IOException e) {
+                }
+            }
         }
     }
 }
