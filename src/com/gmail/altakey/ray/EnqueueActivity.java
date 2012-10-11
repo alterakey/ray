@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.util.Random;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
@@ -118,25 +119,16 @@ public class EnqueueActivity extends Activity {
 
         private class Cacher {
             public File cache() throws IOException {
-                ReadableByteChannel src = null;
+                FileChannel src = null;
                 FileChannel dest = null;
                 File destFile = null;
 
                 try {
                     destFile = new File(root(), randomName());
-                    src = Channels.newChannel(getContentResolver().openInputStream(mmUri));
+                    src = new FileInputStream(getContentResolver().openFileDescriptor(mmUri, "r").getFileDescriptor()).getChannel();
                     dest = new FileOutputStream(destFile).getChannel();
 
-                    ByteBuffer buffer = ByteBuffer.allocateDirect(16 * 1024);
-                    while (src.read(buffer) != -1) {
-                        buffer.flip();
-                        dest.write(buffer);
-                        buffer.compact();
-                    }
-                    buffer.flip();
-                    while (buffer.hasRemaining()) {
-                        dest.write(buffer);
-                    }
+                    dest.transferFrom(src, 0, Integer.MAX_VALUE);
 
                     Log.d("MA", String.format("cached %s as %s", mmUri.toString(), destFile.getName()));
                     return destFile;
