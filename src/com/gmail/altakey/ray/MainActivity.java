@@ -14,6 +14,10 @@ import android.widget.ArrayAdapter;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import java.util.List;
+import java.util.LinkedList;
+import android.net.Uri;
+
 public class MainActivity extends Activity
 {
     private ListAdapter mAdapter;
@@ -25,7 +29,7 @@ public class MainActivity extends Activity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
 
-        mAdapter = new MockAdapter();
+        mAdapter = new MockAdapter(this);
         loadCurrentPlaylist();
 
         startServices();
@@ -70,11 +74,17 @@ public class MainActivity extends Activity
         return super.onOptionsItemSelected(mi);
     }
 
-    private class MockAdapter extends ArrayAdapter<String> {
-        public MockAdapter() {
-            super(MainActivity.this, android.R.layout.simple_list_item_1, new String[] {
-                    "file 1", "file 2", "file 3"
-                });
+    private static class MockAdapter extends ArrayAdapter<String> {
+        public MockAdapter(Activity a) {
+            super(a, android.R.layout.simple_list_item_1, getList());
+        }
+
+        private static List<String> getList() {
+            List<String> ret = new LinkedList<String>();
+            for (Uri uri : PlaybackService.getPlaylist()) {
+                ret.add(uri.toString());
+            }
+            return ret;
         }
     }
 }

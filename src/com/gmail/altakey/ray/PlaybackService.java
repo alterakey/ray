@@ -22,6 +22,7 @@ public class PlaybackService extends Service {
     public static final String ACTION_ENQUEUE = "com.gmail.altakey.ray.PlaybackService.actions.ENQUEUE";
 
     private final Player mPlayer = new Player();
+    private static final Queue<Uri> sQueue = new ConcurrentLinkedQueue<Uri>();
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -75,10 +76,13 @@ public class PlaybackService extends Service {
         stopForeground(true);
     }
 
+    public static Queue<Uri> getPlaylist() {
+        return sQueue;
+    }
+
     private class Player {
         private MediaPlayer mmPlayer;
         private boolean mmPlaying = false;
-        private Queue<Uri> mmQueue = new ConcurrentLinkedQueue<Uri>();
         private MediaPlayerEventListener mmListener = new MediaPlayerEventListener();
 
         public void start() throws IOException {
@@ -89,8 +93,8 @@ public class PlaybackService extends Service {
             } else {
                 mmPlayer.reset();
             }
-            if (!mmQueue.isEmpty()) {
-                Uri uri = mmQueue.peek();
+            if (!sQueue.isEmpty()) {
+                Uri uri = sQueue.peek();
                 mmPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
                 mmPlayer.setDataSource(PlaybackService.this, uri);
                 mmPlayer.prepare();
@@ -108,14 +112,14 @@ public class PlaybackService extends Service {
         }
 
         public void enqueue(Uri uri) throws IOException {
-            mmQueue.add(uri);
+            sQueue.add(uri);
             Log.d("PS", String.format("queued: %s", uri.toString()));
             if (!mmPlaying)
                 start();
         }
 
         public void skip() throws IOException {
-            mmQueue.poll();
+            sQueue.poll();
             start();
         }
 
