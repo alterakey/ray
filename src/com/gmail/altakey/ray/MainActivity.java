@@ -46,6 +46,7 @@ public class MainActivity extends Activity
     @Override
     public void onResume() {
         super.onResume();
+        mAdapter.refresh();
         LocalBroadcastManager.getInstance(this).registerReceiver(mAdapter.listener, new IntentFilter(PlaybackService.ACTION_UPDATE_QUEUE));
     }
 
