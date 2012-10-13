@@ -81,9 +81,16 @@ public class MainActivity extends Activity
 
     @Override
     public boolean onOptionsItemSelected(MenuItem mi) {
+        Intent intent;
+
         switch (mi.getItemId()) {
+        case R.id.menu_main_clear_playlist:
+            intent = new Intent(this, PlaybackService.class);
+            intent.setAction(PlaybackService.ACTION_CLEAR);
+            startService(intent);
+            return true;
         case R.id.menu_main_config:
-            Intent intent = new Intent(this, ConfigActivity.class);
+            intent = new Intent(this, ConfigActivity.class);
             startActivity(intent);
             return true;
         case R.id.menu_main_quit:

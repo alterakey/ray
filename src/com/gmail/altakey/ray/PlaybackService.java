@@ -21,6 +21,7 @@ import android.support.v4.content.LocalBroadcastManager;
 
 public class PlaybackService extends Service {
     public static final String ACTION_ENQUEUE = "com.gmail.altakey.ray.PlaybackService.actions.ENQUEUE";
+    public static final String ACTION_CLEAR = "com.gmail.altakey.ray.PlaybackService.actions.CLEAR";
     public static final String ACTION_UPDATE_QUEUE = "com.gmail.altakey.ray.PlaybackService.actions.UPDATE_QUEUE";
 
     private final Player mPlayer = new Player();
@@ -42,6 +43,10 @@ public class PlaybackService extends Service {
                     Log.d("PS", String.format("cannot start player: %s", e.toString()));
                     stopSelf();
                 }
+            }
+            if (ACTION_CLEAR.equals(intent.getAction())) {
+                mPlayer.stop();
+                Toast.makeText(this, "Cleared playlist.", Toast.LENGTH_SHORT).show();
             }
         }
         return START_STICKY;
