@@ -111,6 +111,8 @@ public class PlaybackService extends Service {
                 mmPlayer = null;
                 mmPlaying = false;
             }
+            sQueue.clear();
+            notifyQueueUpdate();
         }
 
         public void enqueue(Uri uri) throws IOException {
