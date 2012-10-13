@@ -17,10 +17,18 @@ import android.view.MenuItem;
 import java.util.List;
 import java.util.LinkedList;
 import android.net.Uri;
+import android.content.BroadcastReceiver;
+import android.support.v4.content.LocalBroadcastManager;
+import android.widget.ListView;
+import android.content.Context;
+import android.content.IntentFilter;
+import android.widget.ListView;
 
 public class MainActivity extends Activity
 {
-    private ListAdapter mAdapter;
+    public static final String ACTION_UPDATE = "com.gmail.altakey.ray.MainActivity.actions.UPDATE";
+
+    private PlaylistAdapter mAdapter;
 
     /** Called when the activity is first created. */
     @Override
@@ -29,10 +37,22 @@ public class MainActivity extends Activity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
 
-        mAdapter = new MockAdapter(this);
+        mAdapter = new PlaylistAdapter(this);
         loadCurrentPlaylist();
 
         startServices();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        LocalBroadcastManager.getInstance(this).registerReceiver(mAdapter.listener, new IntentFilter(PlaybackService.ACTION_UPDATE_QUEUE));
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mAdapter.listener);
     }
 
     private void startServices() {
@@ -74,17 +94,26 @@ public class MainActivity extends Activity
         return super.onOptionsItemSelected(mi);
     }
 
-    private static class MockAdapter extends ArrayAdapter<String> {
-        public MockAdapter(Activity a) {
-            super(a, android.R.layout.simple_list_item_1, getList());
+    private static class PlaylistAdapter extends ArrayAdapter<String> {
+        public final PlaylistUpdateListener listener = new PlaylistUpdateListener();
+
+        public PlaylistAdapter(Activity a) {
+            super(a, android.R.layout.simple_list_item_1, new LinkedList<String>());
         }
 
-        private static List<String> getList() {
-            List<String> ret = new LinkedList<String>();
+        public void refresh() {
+            clear();
             for (Uri uri : PlaybackService.getPlaylist()) {
-                ret.add(uri.toString());
+                add(uri.toString());
             }
-            return ret;
+            notifyDataSetChanged();
+        }
+
+        private class PlaylistUpdateListener extends BroadcastReceiver {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                refresh();
+            }
         }
     }
 }

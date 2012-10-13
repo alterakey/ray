@@ -17,9 +17,11 @@ import java.io.IOException;
 import java.io.File;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import android.support.v4.content.LocalBroadcastManager;
 
 public class PlaybackService extends Service {
     public static final String ACTION_ENQUEUE = "com.gmail.altakey.ray.PlaybackService.actions.ENQUEUE";
+    public static final String ACTION_UPDATE_QUEUE = "com.gmail.altakey.ray.PlaybackService.actions.UPDATE_QUEUE";
 
     private final Player mPlayer = new Player();
     private static final Queue<Uri> sQueue = new ConcurrentLinkedQueue<Uri>();
@@ -114,13 +116,20 @@ public class PlaybackService extends Service {
         public void enqueue(Uri uri) throws IOException {
             sQueue.add(uri);
             Log.d("PS", String.format("queued: %s", uri.toString()));
+            notifyQueueUpdate();
             if (!mmPlaying)
                 start();
         }
 
         public void skip() throws IOException {
             sQueue.poll();
+            notifyQueueUpdate();
             start();
+        }
+
+        private void notifyQueueUpdate() {
+            Intent intent = new Intent(PlaybackService.ACTION_UPDATE_QUEUE);
+            LocalBroadcastManager.getInstance(PlaybackService.this).sendBroadcast(intent);
         }
 
         private class MediaPlayerEventListener implements MediaPlayer.OnCompletionListener {
