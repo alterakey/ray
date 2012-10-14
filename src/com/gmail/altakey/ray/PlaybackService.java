@@ -71,9 +71,10 @@ public class PlaybackService extends Service {
             .setContentTitle(getString(R.string.app_name))
             .setContentText("Playing...")
             .setContentIntent(PendingIntent.getActivity(this, 0, content, PendingIntent.FLAG_UPDATE_CURRENT))
+            .setTicker("Playing...")
             .setSmallIcon(R.drawable.icon)
             .getNotification();
-        startForeground(1, noti);
+        startForeground(2, noti);
     }
 
     @Override
