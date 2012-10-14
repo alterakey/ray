@@ -26,6 +26,12 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.*;
 import android.os.AsyncTask;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.LayoutInflater;
+import android.widget.EditText;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 
 public class EnqueueActivity extends Activity {
     private static final String[] FRIENDS = { "10.0.0.50:8080" };
@@ -37,26 +43,72 @@ public class EnqueueActivity extends Activity {
         final String action = getIntent().getAction();
         final Bundle extras = getIntent().getExtras();
 
-        try {
-            if (Intent.ACTION_SEND.equals(action)) {
-                if (extras.containsKey(Intent.EXTRA_STREAM)) {
-                    new EnqueueTaskInvoker().invokeOnFriend((Uri)extras.getParcelable(Intent.EXTRA_STREAM));
-                }
-            } else if (Intent.ACTION_SEND_MULTIPLE.equals(action)) {
-                if (extras.containsKey(Intent.EXTRA_STREAM)) {
-                    for (Parcelable p : extras.getParcelableArrayList(Intent.EXTRA_STREAM)) {
-                        new EnqueueTaskInvoker().invokeOnFriend((Uri)p);
-                    }
+        if (Intent.ACTION_SEND.equals(action)) {
+            if (extras.containsKey(Intent.EXTRA_STREAM)) {
+                new EnqueueTaskInvoker((Uri)extras.getParcelable(Intent.EXTRA_STREAM)).invokeOnFriend();
+            }
+        } else if (Intent.ACTION_SEND_MULTIPLE.equals(action)) {
+            if (extras.containsKey(Intent.EXTRA_STREAM)) {
+                for (Parcelable p : extras.getParcelableArrayList(Intent.EXTRA_STREAM)) {
+                    new EnqueueTaskInvoker((Uri)p).invokeOnFriend();
                 }
             }
-        } finally {
+        } else {
             finish();
         }
     }
 
     private class EnqueueTaskInvoker {
-        public void invokeOnFriend(Uri forUri) {
-            new EnqueueToFriendTask(FRIENDS[0], forUri).execute();
+        private Uri mmForUri;
+
+        public EnqueueTaskInvoker(Uri forUri) {
+            mmForUri = forUri;
+        }
+
+        public void invokeOnFriend() {
+            LayoutInflater inflater = getLayoutInflater();
+            View layout = inflater.inflate(
+                R.layout.friend,
+                (ViewGroup)findViewById(R.id.root));
+
+            EditText field = (EditText)layout.findViewById(R.id.name);
+            AlertDialog.Builder builder = new AlertDialog.Builder(EnqueueActivity.this);
+            builder
+                .setView(layout)
+                .setTitle(R.string.dialog_title_send_to)
+                .setOnCancelListener(new CancelAction())
+                .setNegativeButton(android.R.string.cancel, new CancelAction())
+                .setPositiveButton(android.R.string.ok, new ConfirmAction(field));
+            builder.create().show();
+        }
+
+        private class CancelAction implements DialogInterface.OnClickListener, DialogInterface.OnCancelListener {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+                finish();
+            }
+            @Override
+            public void onCancel(DialogInterface dialog) {
+                dialog.dismiss();
+                finish();
+            }
+        }
+
+        private class ConfirmAction implements DialogInterface.OnClickListener {
+            private EditText mmmField;
+
+            public ConfirmAction(EditText field) {
+                mmmField = field;
+            }
+
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                String name = mmmField.getText().toString();
+                dialog.dismiss();
+                new EnqueueToFriendTask(name, mmForUri).execute();
+                finish();
+            }
         }
     }
 
