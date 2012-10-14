@@ -28,7 +28,7 @@ import java.nio.*;
 import android.os.AsyncTask;
 
 public class EnqueueActivity extends Activity {
-    private static final String[] FRIENDS = { "192.168.1.17:8080", "192.168.1.15:8080", "10.0.0.52:8080" };
+    private static final String[] FRIENDS = { "10.0.0.50:8080" };
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -40,17 +40,23 @@ public class EnqueueActivity extends Activity {
         try {
             if (Intent.ACTION_SEND.equals(action)) {
                 if (extras.containsKey(Intent.EXTRA_STREAM)) {
-                    new EnqueueToFriendTask(FRIENDS[0], (Uri)extras.getParcelable(Intent.EXTRA_STREAM)).execute();
+                    new EnqueueTaskInvoker().invokeOnFriend((Uri)extras.getParcelable(Intent.EXTRA_STREAM));
                 }
             } else if (Intent.ACTION_SEND_MULTIPLE.equals(action)) {
                 if (extras.containsKey(Intent.EXTRA_STREAM)) {
                     for (Parcelable p : extras.getParcelableArrayList(Intent.EXTRA_STREAM)) {
-                        new EnqueueToFriendTask(FRIENDS[0], (Uri)p).execute();
+                        new EnqueueTaskInvoker().invokeOnFriend((Uri)p);
                     }
                 }
             }
         } finally {
             finish();
+        }
+    }
+
+    private class EnqueueTaskInvoker {
+        public void invokeOnFriend(Uri forUri) {
+            new EnqueueToFriendTask(FRIENDS[0], forUri).execute();
         }
     }
 
