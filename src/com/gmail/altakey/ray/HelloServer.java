@@ -23,20 +23,21 @@ public class HelloServer extends NanoHTTPD
 
 	public Response serve( String uri, String method, Properties header, Properties parms, Properties files )
 	{
-		System.out.println( method + " '" + uri + "' " );
-		String msg = "<html><body><h1>Air Intention</h1>\n";
+        String msg = "";
 		if ( files.getProperty("stream") == null ) {
-			msg +=
-				"<form action='.' enctype='multipart/form-data' method='post'>\n" +
-				"  <p>Enqueue stream: <input type='file' name='stream'></p>\n" +
-				"  <p><input type='submit' name='Go'></p>\n" +
-				"</form>\n";
+			msg =
+                "<html>" +
+                "<head><script src='//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js'></script></head>" +
+                "<body><h1>Air Intention</h1>" +
+				"<form action='.' enctype='multipart/form-data' method='post'>" +
+				"<p>Enqueue stream: <input type='file' name='stream'></p>" +
+				"<p><input type='submit' name='Go'></p>\n" +
+				"</form>" +
+                "</body></html>";
         } else {
-			msg += "<p>Queued in playlist.</p>";
+            msg = "<html><body>Queued in playlist.</body></html>";
             new Enqueuer(files.getProperty("stream")).enqueue();
         }
-
-		msg += "</body></html>\n";
 		return new NanoHTTPD.Response( HTTP_OK, MIME_HTML, msg );
 	}
 
