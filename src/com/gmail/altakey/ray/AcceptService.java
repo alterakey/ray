@@ -55,11 +55,13 @@ public class AcceptService extends Service {
         try {
             mServer.start();
 
+            String msg = String.format("%s (%s)", getString(R.string.accepting_stream), mServer.getWifiInet4Address());
+
             Notification noti = new NotificationCompat.Builder(this)
                 .setContentTitle(getString(R.string.app_name))
-                .setContentText(getString(R.string.accepting_stream))
+                .setContentText(msg)
                 .setContentIntent(PendingIntent.getActivity(this, 0, content, PendingIntent.FLAG_UPDATE_CURRENT))
-                .setTicker(getString(R.string.accepting_stream))
+                .setTicker(msg)
                 .setSmallIcon(R.drawable.icon)
                 .getNotification();
             startForeground(1, noti);
@@ -81,6 +83,7 @@ public class AcceptService extends Service {
         private HelloServer mmServer = null;
         private WifiManager.WifiLock mmWifiLock = null;
         private PowerManager.WakeLock mmWakeLock = null;
+        private int mmWifiAddress = 0;
 
         public ServerController() {
             WifiManager wfm = (WifiManager)getSystemService(Context.WIFI_SERVICE);
@@ -91,6 +94,15 @@ public class AcceptService extends Service {
                 mmWifiLock = wfm.createWifiLock(WifiManager.WIFI_MODE_FULL, "com.gmail.altakey.ray.AcceptService");
             }
             mmWakeLock = pwm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "com.gmail.altakey.ray.AcceptService");
+
+            if (wfm.isWifiEnabled()) {
+                mmWifiAddress = wfm.getConnectionInfo().getIpAddress();
+            }
+
+        }
+
+        public String getWifiInet4Address() {
+            return String.format("%d.%d.%d.%d:8080", mmWifiAddress >> 0 & 0xff, mmWifiAddress >> 8 & 0xff, mmWifiAddress >> 16 & 0xff, mmWifiAddress >> 24 & 0xff);
         }
 
         public void start() throws IOException {
