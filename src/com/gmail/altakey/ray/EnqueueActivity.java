@@ -32,6 +32,7 @@ import android.view.LayoutInflater;
 import android.widget.EditText;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import java.util.*;
 
 public class EnqueueActivity extends Activity {
     private static final String[] FRIENDS = { "10.0.0.50:8080" };
@@ -60,25 +61,60 @@ public class EnqueueActivity extends Activity {
 
     private class EnqueueTaskInvoker {
         private Uri mmForUri;
+        private List<String> mmOptions = new LinkedList<String>();
 
         public EnqueueTaskInvoker(Uri forUri) {
             mmForUri = forUri;
+            mmOptions.add("(local)");
+            mmOptions.add("10.0.0.50");
+            mmOptions.add("10.0.0.52");
+            mmOptions.add("192.168.1.15");
+            mmOptions.add("192.168.1.17");
+            mmOptions.add("Other...");
         }
 
         public void invokeOnFriend() {
-            LayoutInflater inflater = getLayoutInflater();
-            View layout = inflater.inflate(
-                R.layout.friend,
-                (ViewGroup)findViewById(R.id.root));
-
-            EditText field = (EditText)layout.findViewById(R.id.name);
             AlertDialog.Builder builder = new AlertDialog.Builder(EnqueueActivity.this);
             builder
-                .setView(layout)
                 .setTitle(R.string.dialog_title_send_to)
                 .setOnCancelListener(new CancelAction())
-                .setNegativeButton(android.R.string.cancel, new CancelAction())
-                .setPositiveButton(android.R.string.ok, new ConfirmAction(field));
+                .setItems(mmOptions.toArray(new String[0]), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        String choice = mmOptions.get(which);
+                        if (choice != null) {
+                            if ("Other...".equals(choice)) {
+                                LayoutInflater inflater = getLayoutInflater();
+                                View layout = inflater.inflate(
+                                    R.layout.friend,
+                                    (ViewGroup)findViewById(R.id.root));
+
+                                AlertDialog.Builder builder = new AlertDialog.Builder(EnqueueActivity.this);
+                                EditText field = (EditText)layout.findViewById(R.id.name);
+                                builder
+                                    .setTitle(R.string.dialog_title_send_to)
+                                    .setView(layout)
+                                    .setOnCancelListener(new CancelAction())
+                                    .setNegativeButton(android.R.string.cancel, new CancelAction())
+                                    .setPositiveButton(android.R.string.ok, new ConfirmAction(field));
+
+                                dialog.dismiss();
+                                builder.create().show();
+                            } else if ("(local)".equals(choice)) {
+                                dialog.dismiss();
+                                new EnqueueToFriendTask("localhost:8080", mmForUri).execute();
+                                finish();
+                            } else {
+                                dialog.dismiss();
+                                new EnqueueToFriendTask(String.format("%s:8080", choice), mmForUri).execute();
+                                finish();
+                            }
+                        } else {
+                            dialog.dismiss();
+                        }
+                    }
+                });
+
             builder.create().show();
         }
 
