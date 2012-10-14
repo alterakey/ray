@@ -63,7 +63,19 @@ public class PlaybackService extends Service {
             stopSelf();
             return;
         }
+    }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mPlayer.stop();
+    }
+
+    public static Queue<Uri> getPlaylist() {
+        return sQueue;
+    }
+
+    public void showNotification() {
         Intent content = new Intent(this, MainActivity.class);
         content.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
 
@@ -77,15 +89,8 @@ public class PlaybackService extends Service {
         startForeground(2, noti);
     }
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        mPlayer.stop();
+    public void hideNotification() {
         stopForeground(true);
-    }
-
-    public static Queue<Uri> getPlaylist() {
-        return sQueue;
     }
 
     private class Player {
@@ -109,6 +114,9 @@ public class PlaybackService extends Service {
                 mmPlayer.start();
                 mmPlaying = true;
             }
+
+            if (mmPlaying)
+                showNotification();
         }
 
         public void stop() {
@@ -120,6 +128,8 @@ public class PlaybackService extends Service {
             purgeAll();
             sQueue.clear();
             notifyQueueUpdate();
+
+            hideNotification();
         }
 
         public void enqueue(Uri uri) throws IOException {
