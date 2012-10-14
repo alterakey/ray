@@ -14,12 +14,24 @@ import android.net.Uri;
 public class HelloServer extends NanoHTTPD
 {
     private Context mContext;
+    private boolean mUsingExternalCache;
 
 	public HelloServer(Context context, int port, File root) throws IOException
 	{
 		super(port, root);
         mContext = context;
+        mUsingExternalCache = true;
 	}
+
+    @Override
+    protected String getSystemTemporaryDirectory() {
+        File cacheDir = mContext.getExternalCacheDir();
+        if (cacheDir == null) {
+            mContext.getCacheDir();
+            mUsingExternalCache = false;
+        }
+        return cacheDir.getAbsolutePath();
+    }
 
 	public Response serve( String uri, String method, Properties header, Properties parms, Properties files )
 	{
@@ -49,7 +61,11 @@ public class HelloServer extends NanoHTTPD
         }
 
         public void enqueue() {
-            seize();
+            if (mUsingExternalCache) {
+                seizeExternal();
+            } else {
+                seizeInternal();
+            }
 
             Intent intent = new Intent(mContext, PlaybackService.class);
             intent.setAction(PlaybackService.ACTION_ENQUEUE);
@@ -57,7 +73,20 @@ public class HelloServer extends NanoHTTPD
             mContext.startService(intent);
         }
 
-        private void seize() {
+        private void seizeExternal() {
+            try {
+                File srcFile = new File(mmPath);
+                File destFile = new File(mContext.getExternalFilesDir(null), srcFile.getName());
+                if (!srcFile.renameTo(destFile)) {
+                    throw new IOException(String.format("cannot rename %s to %s", srcFile.getAbsolutePath(), destFile.getAbsolutePath()));
+                }
+                mmPath = destFile.getAbsolutePath();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        private void seizeInternal() {
             FileChannel src = null;
             FileChannel dest = null;
 

@@ -302,6 +302,14 @@ public class NanoHTTPD
 		try { System.in.read(); } catch( Throwable t ) {}
 	}
 
+    /**
+     * Returns system-specific temporary directory.
+     */
+    protected String getSystemTemporaryDirectory() {
+        return System.getProperty("java.io.tmpdir");
+    }
+
+
 	/**
 	 * Handles one session, i.e. parses the HTTP request
 	 * and returns the response.
@@ -656,7 +664,7 @@ public class NanoHTTPD
 			String path = "";
 			if (len > 0)
 			{
-				String tmpdir = System.getProperty("java.io.tmpdir");
+				String tmpdir = getSystemTemporaryDirectory();
 				try {
 					File temp = File.createTempFile("NanoHTTPD", "", new File(tmpdir));
 					myTmpFiles.record(temp);
@@ -676,7 +684,7 @@ public class NanoHTTPD
 			String path = "";
 			if (len > 0)
 			{
-				String tmpdir = System.getProperty("java.io.tmpdir");
+				String tmpdir = getSystemTemporaryDirectory();
 				try {
 					File temp = File.createTempFile("NanoHTTPD", "", new File(tmpdir));
 					myTmpFiles.record(temp);
