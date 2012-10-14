@@ -116,6 +116,7 @@ public class PlaybackService extends Service {
                 mmPlayer = null;
                 mmPlaying = false;
             }
+            purgeAll();
             sQueue.clear();
             notifyQueueUpdate();
         }
@@ -129,9 +130,22 @@ public class PlaybackService extends Service {
         }
 
         public void skip() throws IOException {
-            sQueue.poll();
+            Uri played = sQueue.poll();
+            purge(played);
             notifyQueueUpdate();
             start();
+        }
+
+        private void purgeAll() {
+            for (Uri uri : sQueue) {
+                purge(uri);
+            }
+        }
+        private void purge(Uri uri) {
+            if ("file".equals(uri.getScheme())) {
+                Log.d("PS", String.format("deleting: %s", uri.getPath()));
+                new File(uri.getPath()).delete();
+            }
         }
 
         private void notifyQueueUpdate() {
