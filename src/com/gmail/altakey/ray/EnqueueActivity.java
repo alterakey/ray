@@ -35,8 +35,6 @@ import android.content.DialogInterface;
 import java.util.*;
 
 public class EnqueueActivity extends Activity {
-    private static final String[] FRIENDS = { "10.0.0.50:8080" };
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
